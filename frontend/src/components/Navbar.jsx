@@ -5,10 +5,23 @@ import { Sun, Moon, LogOut, Terminal } from 'lucide-react';
 
 const Navbar = () => {
     const { darkMode, setDarkMode } = useTheme();
-    const { logout } = useAuth();
+    // Use the logout function from your AuthContext if it exists
+    const { logout } = useAuth(); 
+
+    // This handles the persistent session cleanup
+    const handleLogout = () => {
+        // Clear session data
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        
+        // If your AuthContext has a logout function, call it to clear global state
+        if (logout) logout(); 
+
+        // Redirect to login page to ensure a clean state
+        window.location.href = '/login'; 
+    };
 
     const handleReset = () => {
-        // This refreshes the page to give a clean state
         window.location.href = '/dashboard';
     };
 
@@ -35,8 +48,10 @@ const Navbar = () => {
                     {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200 dark:bg-slate-800" />
+                
+                {/* Updated Logout Button */}
                 <button 
-                    onClick={logout}
+                    onClick={handleLogout} 
                     className="flex items-center gap-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 px-3 py-2 rounded-lg transition-all active:scale-95"
                 >
                     <LogOut size={18} />
