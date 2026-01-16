@@ -3,6 +3,7 @@ import RecentHistory from "../components/RecentHistory";
 import Editor from "../components/Editor";
 import Navbar from "../components/Navbar";
 import { History, X } from "lucide-react"; // Added X for closing
+import { CodeXml } from "lucide-react";
 
 const Dashboard = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -55,15 +56,28 @@ const Dashboard = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full">
           <div className="max-w-5xl mx-auto">
             {/* Greeting Card */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg text-white">
-              <h2 className="text-xl md:text-3xl font-bold">
-                Happy Coding, {username}!
-              </h2>
-              <p className="text-blue-100 text-sm mt-1 opacity-90">
-                {isHistoryOpen
-                  ? "Pick a snippet to load it."
-                  : "Use the button below to view history on mobile."}
-              </p>
+            <div className="mb-8 p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-blue-500/5 border border-gray-100 dark:border-slate-800 flex items-center justify-between overflow-hidden relative group">
+              {/* Decorative Background Glow */}
+              <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors" />
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl md:text-4xl font-black tracking-tight flex items-center gap-3">
+                    <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent leading-[1.2] pb-1 inline-block">
+                      Happy Coding, {username}!
+                    </span>
+                    <CodeXml
+                      size={36}
+                      className="text-blue-500 animate-bounce hidden md:block"
+                    />
+                  </h2>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base mt-2 font-medium">
+                  {isHistoryOpen
+                    ? "Select a previous snippet to continue editing."
+                    : "Your AI-powered workspace is ready. What are we building today?"}
+                </p>
+              </div>
             </div>
 
             <Editor
