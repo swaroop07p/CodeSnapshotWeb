@@ -1,34 +1,58 @@
 import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
-import { Download, Terminal } from "lucide-react";
+import { Download, Terminal, Sparkles, Loader2 } from "lucide-react";
 import axios from "axios";
 
 const Editor = ({ onSaveSuccess, loadSnippet }) => {
+  // --- 1. States ---
   const [code, setCode] = useState("");
   const [bgGradient, setBgGradient] = useState(
     "from-indigo-500 via-purple-500 to-pink-500"
   );
+  const [explanation, setExplanation] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const elementRef = useRef(null);
 
-  // This is the part that was causing the crash because useEffect wasn't imported!
+  // --- 2. Hooks ---
   useEffect(() => {
     if (loadSnippet) {
       setCode(loadSnippet.code);
       if (loadSnippet.styling?.background) {
         setBgGradient(loadSnippet.styling.background);
       }
+      setExplanation(""); // Clear AI explanation when loading a new snippet
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [loadSnippet]);
 
+  // --- 3. AI Logic ---
+  const handleAiExplain = async () => {
+    if (!code) return;
+    setIsAiLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "http://localhost:5000/api/ai/explain",
+        { code },
+        { headers: { "x-auth-token": token } }
+      );
+      setExplanation(res.data.explanation);
+    } catch (err) {
+      console.error("AI Error:", err);
+      alert("AI service is currently busy. Try again in a moment!");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // --- 4. Export & Save Logic ---
   const handleExport = async () => {
     if (!elementRef.current) return;
 
     try {
-      // Generate Image
       const dataUrl = await toPng(elementRef.current, {
         cacheBust: true,
-        style: { height: "auto" }, // Force capture full height
+        style: { height: "auto" },
       });
 
       const link = document.createElement("a");
@@ -36,7 +60,6 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
       link.href = dataUrl;
       link.click();
 
-      // Save to MongoDB
       const token = localStorage.getItem("token");
       if (token) {
         await axios.post(
@@ -49,85 +72,117 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
           { headers: { "x-auth-token": token } }
         );
 
-        if (onSaveSuccess) onSaveSuccess(); // Refresh the sidebar!
+        if (onSaveSuccess) onSaveSuccess();
       }
     } catch (err) {
       console.error("Export failed", err);
     }
   };
 
+  // --- 5. Render ---
   return (
     <div className="flex flex-col items-center w-full">
       {/* Toolbar */}
-      {/* Toolbar */}
       <div className="w-full max-w-3xl mb-6 p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-wrap gap-4 justify-between items-center transition-colors">
-        <div className="flex gap-2 items-center">
-          <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <Terminal size={18} className="text-blue-600 dark:text-blue-400" />
+        <div className="flex gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Terminal size={18} className="text-blue-500" />
+            <select
+              className="bg-transparent text-slate-700 dark:text-slate-200 text-sm outline-none cursor-pointer p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              onChange={(e) => setBgGradient(e.target.value)}
+              value={bgGradient}
+            >
+              <option
+                value="from-indigo-500 via-purple-500 to-pink-500"
+                className="dark:bg-slate-900"
+              >
+                ✨ Magic
+              </option>
+              <option
+                value="from-cyan-400 to-blue-600"
+                className="dark:bg-slate-900"
+              >
+                🌊 Ocean
+              </option>
+              <option
+                value="from-orange-400 to-red-500"
+                className="dark:bg-slate-900"
+              >
+                🌅 Sunset
+              </option>
+              <option
+                value="from-green-400 to-emerald-600"
+                className="dark:bg-slate-900"
+              >
+                🌿 Emerald
+              </option>
+            </select>
           </div>
 
-          {/* Updated Styled Select */}
-          <select
-            className="bg-transparent text-slate-700 dark:text-slate-200 text-sm font-medium outline-none cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors appearance-none"
-            onChange={(e) => setBgGradient(e.target.value)}
+          {/* AI Button */}
+          <button
+            onClick={handleAiExplain}
+            disabled={isAiLoading || !code}
+            className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 p-2 rounded-lg transition-all disabled:opacity-50"
           >
-            <option
-              value="from-indigo-500 via-purple-500 to-pink-500"
-              className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-            >
-              ✨ Magic
-            </option>
-            <option
-              value="from-cyan-400 to-blue-600"
-              className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-            >
-              🌊 Ocean
-            </option>
-            <option
-              value="from-orange-400 to-red-500"
-              className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-            >
-              🌅 Sunset
-            </option>
-            <option
-              value="from-green-400 to-emerald-600"
-              className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white"
-            >
-              🌿 Emerald
-            </option>
-          </select>
+            {isAiLoading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Sparkles size={18} />
+            )}
+            {isAiLoading ? "Analyzing..." : "Explain Code"}
+          </button>
         </div>
 
         <button
           onClick={handleExport}
-          className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all font-semibold shadow-lg shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2 transition-all font-medium active:scale-95"
         >
           <Download size={18} /> Export PNG
         </button>
       </div>
 
-      {/* Exportable Area */}
+      {/* Exportable Image Area (Captured) */}
       <div
         ref={elementRef}
-        className={`p-6 md:p-12 bg-gradient-to-br ${bgGradient} rounded-xl w-full max-w-4xl`}
+        className={`p-6 md:p-12 bg-gradient-to-br ${bgGradient} rounded-xl w-full max-w-4xl transition-all duration-500`}
       >
         <div className="bg-slate-900/90 backdrop-blur-md rounded-lg shadow-2xl overflow-hidden border border-white/10">
-          {/* Mac Controls */}
           <div className="flex gap-2 px-4 py-3 bg-slate-800/40">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
             <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
           </div>
-          {/* Auto-sizing Textarea */}
+
           <textarea
             className="w-full bg-transparent text-slate-200 p-6 font-mono text-sm md:text-base outline-none resize-none min-h-[200px]"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="// Paste your code here..." // This will disappear automatically on paste
+            onChange={(e) => {
+              setCode(e.target.value);
+              setExplanation("");
+            }}
+            placeholder="// Paste your code here..."
             rows={code.split("\n").length || 10}
           />
         </div>
       </div>
+
+      {/* --- AI Section (Outside the captured div) --- */}
+      {explanation && (
+        <div className="w-full max-w-4xl mt-8 p-6 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+              <Sparkles size={16} />
+            </div>
+            <h4 className="font-bold text-slate-800 dark:text-white text-sm uppercase tracking-wider">
+              AI Smart Insight
+            </h4>
+          </div>
+          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed italic border-l-2 border-purple-500 pl-4 py-1">
+            "{explanation}"
+          </p>
+        </div>
+      )}
     </div>
   );
 };
