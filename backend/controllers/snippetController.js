@@ -29,3 +29,25 @@ exports.getRecentSnippets = async (req, res) => {
         res.status(500).json({ msg: 'Server error' });
     }
 };
+
+// DELETE A SNIPPET (Add this function)
+exports.deleteSnippet = async (req, res) => {
+    try {
+        const snippet = await Snippet.findById(req.params.id);
+
+        if (!snippet) {
+            return res.status(404).json({ msg: 'Snippet not found' });
+        }
+
+        // Verify ownership
+        if (snippet.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'Not authorized' });
+        }
+
+        await Snippet.findByIdAndDelete(req.params.id);
+        res.json({ msg: 'Snippet removed successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server error during deletion' });
+    }
+};
