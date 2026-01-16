@@ -1,76 +1,72 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast'; // Added Toaster import
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ setIsAuthenticated }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
             const res = await axios.post('http://localhost:5000/api/auth/login', formData);
             
-            // --- FIX FOR UNDEFINED NAME ---
-            // We check both res.data.user.name and res.data.name as fallbacks
-            const userData = res.data.user || res.data;
-            const userName = userData.name || "Developer"; 
-            const token = res.data.token;
-
-            if (token) {
-                // KEY: Save to localStorage for persistence
-                localStorage.setItem('token', token);
-                localStorage.setItem('username', userName);
-                
-                // KEY: Update state to trigger redirect in App.jsx
-                setIsAuthenticated(true);
-                
-                // Use the extracted variable to avoid 'undefined' in the toast
-                toast.success(`Welcome back, ${userName}!`);
-            } else {
-                toast.error("Login successful but no token received.");
-            }
+            // Backend returns 'username', not 'name'
+            const user = res.data.user;
+            localStorage.setItem('token', res.data.token);
+            localStorage.setItem('username', user.username);
+            
+            setIsAuthenticated(true);
+            toast.success(`Welcome back, ${user.username}!`);
         } catch (err) {
-            console.error("Login Error Details:", err.response?.data);
-            toast.error(err.response?.data?.msg || "Login Failed. Check console for details.");
+            // Check for the specific friendly message from backend
+            const backendMsg = err.response?.data?.msg;
+            if (backendMsg) {
+                toast.error(backendMsg); 
+            } else {
+                toast.error("Login failed. Please check your credentials.");
+            }
+            console.log("Login Error Details:", err.response?.data);
         }
     };
 
     return (
         <div className="h-screen flex items-center justify-center bg-slate-950">
-            <form onSubmit={handleLogin} className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-96 shadow-2xl">
-                <h2 className="text-2xl font-bold text-white mb-2 text-center">Welcome Back</h2>
-                <p className="text-slate-400 text-sm mb-6 text-center">Login to your SnippetGen account</p>
+            {/* THIS COMPONENT MAKES THE MESSAGES VISIBLE ON SCREEN */}
+            <Toaster position="top-center" reverseOrder={false} />
+
+            <form onSubmit={handleLogin} className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-96 shadow-2xl relative overflow-hidden">
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">Login to SnippetGen</h2>
                 
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Email</label>
-                        <input 
-                            type="email" 
-                            placeholder="developer@example.com" 
-                            required
-                            className="w-full p-3 bg-slate-800 rounded-xl text-white outline-none border border-slate-700 focus:border-blue-500 transition-all"
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Password</label>
-                        <input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            required
-                            className="w-full p-3 mb-2 bg-slate-800 rounded-xl text-white outline-none border border-slate-700 focus:border-blue-500 transition-all"
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        />
-                    </div>
+                    <input 
+                        type="email" placeholder="Email" required
+                        className="w-full p-3 bg-slate-800 rounded-lg text-white outline-none border border-slate-700 focus:border-blue-500 transition-all"
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    />
+                    <input 
+                        type="password" placeholder="Password" required
+                        className="w-full p-3 mb-2 bg-slate-800 rounded-lg text-white outline-none border border-slate-700 focus:border-blue-500 transition-all"
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    />
                 </div>
-
-                <button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 mt-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
-                >
+                
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 mt-4 rounded-lg transition-all active:scale-95 shadow-lg shadow-blue-500/20">
                     Enter Dashboard
                 </button>
+
+                <p className="text-center text-slate-500 text-sm mt-6">
+                    Don't have an account? 
+                    <button 
+                        type="button"
+                        onClick={() => navigate('/register')} 
+                        className="text-blue-400 font-bold hover:underline ml-1"
+                    >
+                        Create one
+                    </button>
+                </p>
             </form>
         </div>
     );
