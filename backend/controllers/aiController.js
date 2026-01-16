@@ -6,6 +6,58 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // backend/controllers/aiController.js
 
+exports.ocrCode = async (req, res) => {
+    const { image, mimeType } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!image || !mimeType) {
+        return res.status(400).json({ msg: "Missing image data or mimeType" });
+    }
+
+    try {
+        // Use the v1 stable endpoint
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: "Act as an expert OCR engine. Extract every single character of code from this image. Output ONLY the raw code text. Do not include markdown backticks like ```. If you cannot find code, return an empty string." },
+                        { inline_data: { mime_type: mimeType, data: image } }
+                    ]
+                }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            console.error("Gemini API Error:", data.error.message);
+            return res.status(500).json({ msg: "AI API Error", details: data.error.message });
+        }
+
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+            let extractedCode = data.candidates[0].content.parts[0].text;
+            
+            // Clean up any markdown formatting just in case
+            extractedCode = extractedCode.replace(/```[a-z]*\n/g, '').replace(/```/g, '');
+            
+            if (!extractedCode.trim()) {
+                return res.status(500).json({ msg: 'AI could not find code.' });
+            }
+
+            res.json({ code: extractedCode.trim() });
+        } else {
+            res.status(500).json({ msg: 'AI could not find code.' });
+        }
+    } catch (err) {
+        console.error("OCR Controller Crash:", err.message);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+};
+
 exports.explainCode = async (req, res) => {
     const { code } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
@@ -49,3 +101,6 @@ exports.explainCode = async (req, res) => {
         res.status(500).json({ msg: "AI Explanation failed" });
     }
 };
+
+// backend/controllers/aiController.js
+

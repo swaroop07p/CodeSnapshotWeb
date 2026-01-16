@@ -13,6 +13,54 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const elementRef = useRef(null);
 
+  // Inside Editor component
+  const fileInputRef = useRef(null);
+
+  const handleOcrUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsAiLoading(true);
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64Data = reader.result.split(",")[1];
+      try {
+        // 1. Get the token from storage
+        const token = localStorage.getItem("token");
+
+        // 2. Make the request with the CORRECT header name
+        const res = await axios.post(
+          "http://localhost:5000/api/ai/ocr",
+          { image: base64Data, mimeType: file.type },
+          {
+            headers: {
+              "x-auth-token": token, // Ensure this matches your middleware
+            },
+          }
+        );
+
+        if (res.data.code) {
+          setCode(res.data.code);
+        }
+      } catch (err) {
+        console.error("OCR Request Error:", err.response?.data || err.message);
+
+        // Check if it's a 401 (Auth) or 500 (AI)
+        if (err.response?.status === 401) {
+          alert("Session expired. Please log in again.");
+        } else {
+          alert(
+            err.response?.data?.msg || "Failed to extract code from image."
+          );
+        }
+      } finally {
+        setIsAiLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // --- 2. Hooks ---
   useEffect(() => {
     if (loadSnippet) {
@@ -83,63 +131,86 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
   return (
     <div className="flex flex-col items-center w-full">
       {/* Toolbar */}
-      <div className="w-full max-w-3xl mb-6 p-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-wrap gap-4 justify-between items-center transition-colors">
-        <div className="flex gap-4 items-center">
-          <div className="flex items-center gap-2">
-            <Terminal size={18} className="text-blue-500" />
-            <select
-              className="bg-transparent text-slate-700 dark:text-slate-200 text-sm outline-none cursor-pointer p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              onChange={(e) => setBgGradient(e.target.value)}
-              value={bgGradient}
+      {/* Optimized Toolbar */}
+      <div className="w-full max-w-4xl mb-8 p-2 md:p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200 dark:border-slate-800 transition-all">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Left Group: Controls */}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4 items-center">
+            {/* Theme/Gradient Select */}
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-gray-100 dark:border-slate-700">
+              <Terminal size={16} className="text-blue-500" />
+              <select
+                className="bg-transparent text-slate-700 dark:text-slate-200 text-sm outline-none cursor-pointer p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                onChange={(e) => setBgGradient(e.target.value)}
+                value={bgGradient}
+              >
+                <option
+                  value="from-indigo-500 via-purple-500 to-pink-500"
+                  className="dark:bg-slate-900"
+                >
+                  ✨ Magic
+                </option>
+                <option
+                  value="from-cyan-400 to-blue-600"
+                  className="dark:bg-slate-900"
+                >
+                  🌊 Ocean
+                </option>
+                <option
+                  value="from-orange-400 to-red-500"
+                  className="dark:bg-slate-900"
+                >
+                  🌅 Sunset
+                </option>
+                <option
+                  value="from-green-400 to-emerald-600"
+                  className="dark:bg-slate-900"
+                >
+                  🌿 Emerald
+                </option>
+              </select>
+            </div>
+
+            {/* AI Explain Button */}
+            <button
+              onClick={handleAiExplain}
+              disabled={isAiLoading || !code}
+              className="flex items-center gap-2 text-sm font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 px-4 py-2 rounded-xl transition-all disabled:opacity-50 active:scale-95"
             >
-              <option
-                value="from-indigo-500 via-purple-500 to-pink-500"
-                className="dark:bg-slate-900"
-              >
-                ✨ Magic
-              </option>
-              <option
-                value="from-cyan-400 to-blue-600"
-                className="dark:bg-slate-900"
-              >
-                🌊 Ocean
-              </option>
-              <option
-                value="from-orange-400 to-red-500"
-                className="dark:bg-slate-900"
-              >
-                🌅 Sunset
-              </option>
-              <option
-                value="from-green-400 to-emerald-600"
-                className="dark:bg-slate-900"
-              >
-                🌿 Emerald
-              </option>
-            </select>
+              {isAiLoading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <Sparkles size={18} />
+              )}
+              <span>{isAiLoading ? "Analyzing..." : "Explain Code"}</span>
+            </button>
+
+            {/* OCR Button */}
+            <button
+              onClick={() => fileInputRef.current.click()}
+              className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-4 py-2 rounded-xl transition-all active:scale-95"
+            >
+              <Terminal size={18} />
+              <span>Scan Image</span>
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleOcrUpload}
+              accept="image/*"
+              className="hidden"
+            />
           </div>
 
-          {/* AI Button */}
+          {/* Right Group: Export */}
           <button
-            onClick={handleAiExplain}
-            disabled={isAiLoading || !code}
-            className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 p-2 rounded-lg transition-all disabled:opacity-50"
+            onClick={handleExport}
+            className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all font-bold shadow-lg shadow-blue-500/25 active:scale-95"
           >
-            {isAiLoading ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <Sparkles size={18} />
-            )}
-            {isAiLoading ? "Analyzing..." : "Explain Code"}
+            <Download size={20} />
+            Export Image
           </button>
         </div>
-
-        <button
-          onClick={handleExport}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2 transition-all font-medium active:scale-95"
-        >
-          <Download size={18} /> Export PNG
-        </button>
       </div>
 
       {/* Exportable Image Area (Captured) */}
