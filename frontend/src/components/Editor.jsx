@@ -1,14 +1,25 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, Terminal } from "lucide-react";
 import axios from "axios";
 
-const Editor = ({ onSaveSuccess }) => {
+const Editor = ({ onSaveSuccess, loadSnippet }) => {
   const [code, setCode] = useState("");
   const [bgGradient, setBgGradient] = useState(
     "from-indigo-500 via-purple-500 to-pink-500"
   );
   const elementRef = useRef(null);
+
+  // This is the part that was causing the crash because useEffect wasn't imported!
+  useEffect(() => {
+    if (loadSnippet) {
+      setCode(loadSnippet.code);
+      if (loadSnippet.styling?.background) {
+        setBgGradient(loadSnippet.styling.background);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [loadSnippet]);
 
   const handleExport = async () => {
     if (!elementRef.current) return;

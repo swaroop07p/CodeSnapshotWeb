@@ -26,6 +26,7 @@ const Auth = () => {
         formData
       );
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem('username', res.data.user.username);
       navigate("/dashboard");
       // Inside handleSubmit in Auth.jsx
     } catch (err) {
