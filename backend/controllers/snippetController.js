@@ -5,7 +5,7 @@ exports.saveSnippet = async (req, res) => {
     const { code, language, theme, styling } = req.body;
     try {
         const newSnippet = new Snippet({
-            user: req.user.id, // ID comes from authMiddleware
+            user: req.user.id, // This MUST be present from authMiddleware
             code,
             language,
             theme,
@@ -14,6 +14,7 @@ exports.saveSnippet = async (req, res) => {
         const saved = await newSnippet.save();
         res.status(201).json(saved);
     } catch (err) {
+        console.error("Save Error:", err.message);
         res.status(500).json({ msg: 'Failed to save snippet' });
     }
 };
