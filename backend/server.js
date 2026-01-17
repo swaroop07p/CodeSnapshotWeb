@@ -10,9 +10,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Your Vite frontend URL
-    credentials: true
-  }));
+  origin: ['http://localhost:5173', 'https://codesnapshotweb.onrender.com'], // Your Vercel link
+  credentials: true
+}));
 // app.use(express.json());
 
 // Routes

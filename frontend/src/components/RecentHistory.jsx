@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { History, ExternalLink, Trash2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import API_URL from '../config';
 
 const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
   const [history, setHistory] = useState([]);
@@ -17,7 +18,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
     }
 
     try {
-      const res = await axios.get("http://localhost:5000/api/snippets/recent", {
+      const res = await axios.get(`${API_URL}/api/snippets/recent`, {
         headers: { "x-auth-token": token },
       });
 

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, Terminal, Sparkles, Loader2 } from "lucide-react";
 import axios from "axios";
+import API_URL from '../config';
 
 const Editor = ({ onSaveSuccess, loadSnippet }) => {
   // --- 1. States ---
@@ -31,7 +32,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
 
         // 2. Make the request with the CORRECT header name
         const res = await axios.post(
-          "http://localhost:5000/api/ai/ocr",
+          `${API_URL}/api/ai/ocr`,
           { image: base64Data, mimeType: file.type },
           {
             headers: {
@@ -80,7 +81,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://localhost:5000/api/ai/explain",
+        `${API_URL}/api/ai/explain`,
         { code },
         { headers: { "x-auth-token": token } }
       );
@@ -111,7 +112,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
       const token = localStorage.getItem("token");
       if (token) {
         await axios.post(
-          "http://localhost:5000/api/snippets",
+          `${API_URL}/api/snippets`,
           {
             code,
             language: "javascript",

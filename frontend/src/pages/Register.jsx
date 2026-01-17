@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast'; // Added Toaster import
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
 const Register = ({ setIsAuthenticated }) => {
     // Backend expects 'username', not 'name'
@@ -12,7 +13,7 @@ const Register = ({ setIsAuthenticated }) => {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+            const res = await axios.post(`${API_URL}/api/auth/register`, formData);
             
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('username', res.data.user.username);
