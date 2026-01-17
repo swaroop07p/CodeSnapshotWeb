@@ -10,7 +10,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://codesnapshotweb.onrender.com'], // Your Vercel link
+  origin: [
+      'http://localhost:5173',               // Local development
+      'https://code-snapshot-web.vercel.app'  // Your live Vercel frontend
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
   credentials: true
 }));
 // app.use(express.json());
