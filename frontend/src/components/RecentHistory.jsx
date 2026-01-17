@@ -11,7 +11,6 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
   const fetchHistory = async () => {
     const token = localStorage.getItem("token");
 
-    // If there is no token, we can't fetch the user's specific history
     if (!token) {
       console.warn("No token found, skipping history fetch.");
       return;
@@ -21,8 +20,6 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
       const res = await axios.get(`${API_URL}/api/snippets/recent`, {
         headers: { "x-auth-token": token },
       });
-
-      // Ensure we are setting an array even if the database is empty
       setHistory(res.data || []);
     } catch (err) {
       console.error("History Fetch Error:", err.response?.data || err.message);
@@ -45,8 +42,9 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
               onClick={async () => {
                 toast.dismiss(t.id);
                 try {
+                  // FIX: Use API_URL instead of hardcoded localhost
                   await axios.delete(
-                    `http://localhost:5000/api/snippets/${id}`,
+                    `${API_URL}/api/snippets/${id}`,
                     {
                       headers: { "x-auth-token": token },
                     }
@@ -72,7 +70,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
       {
         duration: 6000,
         style: {
-          background: "#1e293b", // Match your dark slate theme
+          background: "#1e293b",
           color: "#f1f5f9",
           border: "1px solid #334155",
         },
@@ -86,7 +84,6 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
 
   return (
     <div className="p-6">
-      {/* Moved to bottom-right to avoid Navbar collision */}
       <Toaster position="bottom-right" reverseOrder={false} />
 
       <h3 className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100 mb-6 border-b dark:border-slate-800 pb-2">
@@ -106,7 +103,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
                 </span>
                 <ExternalLink
                   size={12}
-                  className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity"
+                  className="opacity-100 text-blue-500" // REMOVED opacity-0 and group-hover
                 />
               </div>
               <p className="text-xs font-mono text-slate-500 dark:text-slate-400 truncate pr-8">
@@ -116,7 +113,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
 
             <button
               onClick={(e) => handleDelete(e, item._id)}
-              className="absolute right-3 bottom-3 p-1.5 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="absolute right-3 bottom-3 p-1.5 text-red-400 hover:text-red-500 opacity-100 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20" // REMOVED opacity-0 and group-hover
             >
               <Trash2 size={14} />
             </button>
