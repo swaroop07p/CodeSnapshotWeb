@@ -5,17 +5,22 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-// 1. MUST be at the very top
-app.use(cors()); // This allows ALL origins - the fastest way to fix CORS for a hackathon
-app.options('*', cors()); // Explicitly handles the "preflight" OPTIONS request
+// 1. THIS IS THE FIX: Allow everything explicitly
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+}));
+
+// 2. Handle the "Preflight" request that is causing your error
+app.options('*', cors()); 
 
 connectDB();
 
-// 2. Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// 3. Routes
+// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/snippets', require('./routes/snippetRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
