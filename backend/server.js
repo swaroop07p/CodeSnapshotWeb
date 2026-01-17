@@ -13,7 +13,7 @@ app.use(cors({
 }));
 
 // 2. Handle the "Preflight" request that is causing your error
-app.options('*', cors()); 
+app.options('/{*splat}', cors());
 
 connectDB();
 
