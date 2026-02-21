@@ -53,7 +53,7 @@ const Dashboard = () => {
         </aside>
 
         {/* 3. Main Editor Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full dark:bg-slate-900">
           <div className="max-w-5xl mx-auto">
             {/* Greeting Card */}
             <div className="mb-8 p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-blue-500/5 border border-gray-100 dark:border-slate-800 flex items-center justify-between overflow-hidden relative group">
