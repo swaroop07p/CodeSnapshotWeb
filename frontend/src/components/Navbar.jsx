@@ -35,7 +35,7 @@ const Navbar = () => {
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
           <Terminal size={18} />
         </div>
-        <span className="font-bold text-lg dark:text-white bg-gradient-to-r from-blue-600 to-purple-500 bg-clip-text text-transparent">
+        <span className="font-bold text-lg bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent ">
           SnippetGen
         </span>
       </div>

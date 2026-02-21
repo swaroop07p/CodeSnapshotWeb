@@ -83,7 +83,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
     <div className="p-6">
       <Toaster position="bottom-right" reverseOrder={false} />
 
-      <h3 className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100 mb-6 border-b dark:border-slate-800 pb-2">
+      <h3 className="flex items-center gap-2 font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-6 border-b dark:border-slate-800 pb-2">
         <History size={20} className="text-blue-500" /> Recent History
       </h3>
 
