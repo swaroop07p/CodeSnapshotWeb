@@ -2,13 +2,13 @@ import React, { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, Terminal, Sparkles, Loader2 } from "lucide-react";
 import axios from "axios";
-import API_URL from '../config';
+import API_URL from "../config";
 
 const Editor = ({ onSaveSuccess, loadSnippet }) => {
   // --- 1. States ---
   const [code, setCode] = useState("");
   const [bgGradient, setBgGradient] = useState(
-    "from-indigo-500 via-purple-500 to-pink-500"
+    "from-indigo-500 via-purple-500 to-pink-500",
   );
   const [explanation, setExplanation] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -38,7 +38,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
             headers: {
               "x-auth-token": token, // Ensure this matches your middleware
             },
-          }
+          },
         );
 
         if (res.data.code) {
@@ -52,7 +52,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
           alert("Session expired. Please log in again.");
         } else {
           alert(
-            err.response?.data?.msg || "Failed to extract code from image."
+            err.response?.data?.msg || "Failed to extract code from image.",
           );
         }
       } finally {
@@ -83,7 +83,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
       const res = await axios.post(
         `${API_URL}/api/ai/explain`,
         { code },
-        { headers: { "x-auth-token": token } }
+        { headers: { "x-auth-token": token } },
       );
       setExplanation(res.data.explanation);
     } catch (err) {
@@ -118,7 +118,7 @@ const Editor = ({ onSaveSuccess, loadSnippet }) => {
             language: "javascript",
             styling: { background: bgGradient },
           },
-          { headers: { "x-auth-token": token } }
+          { headers: { "x-auth-token": token } },
         );
 
         if (onSaveSuccess) onSaveSuccess();

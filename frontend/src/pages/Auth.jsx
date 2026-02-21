@@ -23,10 +23,10 @@ const Auth = () => {
     try {
       const res = await axios.post(
         `http://localhost:5000${endpoint}`,
-        formData
+        formData,
       );
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem('username', res.data.user.username);
+      localStorage.setItem("username", res.data.user.username);
       navigate("/dashboard");
       // Inside handleSubmit in Auth.jsx
     } catch (err) {

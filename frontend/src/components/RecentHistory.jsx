@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { History, ExternalLink, Trash2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import API_URL from '../config';
+import API_URL from "../config";
 
 const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
   const [history, setHistory] = useState([]);
@@ -43,12 +43,9 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
                 toast.dismiss(t.id);
                 try {
                   // FIX: Use API_URL instead of hardcoded localhost
-                  await axios.delete(
-                    `${API_URL}/api/snippets/${id}`,
-                    {
-                      headers: { "x-auth-token": token },
-                    }
-                  );
+                  await axios.delete(`${API_URL}/api/snippets/${id}`, {
+                    headers: { "x-auth-token": token },
+                  });
                   setHistory(history.filter((item) => item._id !== id));
                   toast.success("Snippet removed!");
                 } catch (err) {
@@ -74,7 +71,7 @@ const RecentHistory = ({ refreshTrigger, onSelectSnippet }) => {
           color: "#f1f5f9",
           border: "1px solid #334155",
         },
-      }
+      },
     );
   };
 
